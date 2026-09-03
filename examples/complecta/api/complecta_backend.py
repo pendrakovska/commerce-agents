@@ -101,6 +101,15 @@ class ComplectaBackend(StorefrontBackend):
             out["default_finish"] = str(f["finish_default"])
         return out
 
+    def _image(self, url: str | None) -> str | None:
+        """Снимки каталога лежат на домене Complecta; относительный путь витрина
+        localhost не найдёт — делаем абсолютным."""
+        if not url:
+            return None
+        if url.startswith("/"):
+            return self._app_url.rstrip("/") + url
+        return url
+
     def _family(self, f: dict[str, Any]) -> ProductDetails | None:
         """Family record. Unpriced families are not offered: Product.price is a fact, not a
         placeholder, and the brand sent no price list (see search_policies)."""
@@ -108,7 +117,7 @@ class ComplectaBackend(StorefrontBackend):
             return None
         rec = ProductDetails(
             product_id=f["product_id"], title=f["title"], brand=f.get("brand"),
-            price=float(f["price"]), currency="EUR", image_url=f.get("image"),
+            price=float(f["price"]), currency="EUR", image_url=self._image(f.get("image")),
             category=f.get("category"), labels=["3D model"] if f.get("has_3d") else [],
             attributes=self._attributes(f), in_stock=True,
             short_description=f"{f.get('brand')} · {f.get('category')}",
