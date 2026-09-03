@@ -58,7 +58,7 @@ export default function StorefrontPage() {
 
   const late = orders?.filter((order) => order.status === "delayed").length ?? 0;
   const views: StoreView<View>[] = [
-    { id: "assistant", label: "Assistant", icon: "spark" },
+    { id: "assistant", label: "ALXNDRA", icon: "spark" },
     { id: "orders", label: "Orders", icon: "box", attention: late ? { count: late, label: `${late} delayed` } : null },
   ];
   const shopper = session.shopper ?? { name: "Guest" };

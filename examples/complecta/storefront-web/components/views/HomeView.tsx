@@ -24,10 +24,10 @@ import type { Product } from "@/lib/types";
 import ProductTile from "../ProductTile";
 
 const STARTERS: Starter[] = [
-  { icon: "search", prompt: "A tent for a first family camping trip, under $250" },
-  { icon: "home", prompt: "Set up a home office in a small spare room for about $800" },
-  { icon: "tag", prompt: "Drip or espresso for busy weekday mornings?" },
-  { icon: "edit", prompt: "Remember: small apartment, no outdoor storage, and a golden retriever" },
+  { icon: "search", prompt: "Furnish a 25 m² living room in contemporary Italian style, budget €12,000" },
+  { icon: "home", prompt: "Compare two dining tables for six, under €6,000" },
+  { icon: "tag", prompt: "A sofa around 240 cm in walnut and leather — what do the brands offer?" },
+  { icon: "edit", prompt: "Remember: oak floor, no sofa wider than 260 cm, two cats" },
 ];
 
 /** What the store is featuring: labelled bestseller or new, photographed ones first. */
