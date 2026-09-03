@@ -21,7 +21,7 @@ github.com/pendrakovska/Complecta-commerce-alxndra (там `README.md`).
 - `examples/complecta/api/main.py`, `agent_config.py` — сборка агента: скиллы, презентационные инструменты, прогрев в фоне.
 - `examples/complecta/skills/*/SKILL.md` — навыки; `interior-design` — наш, там же правило «не называть цены».
 - `examples/complecta/storefront-web` — витрина в дизайн-системе Complecta: карточки с попапом и ссылкой в студию, свотчи, чекаут как запрос дилеру, голосовой ввод (`examples/web-shared/Composer.tsx`), embed-режим `?embed=1` с конвертами родителю.
-- `demo_common/host.py` — общий хост демо; разрешённые хосты/origin: `ALLOWED_CODES`.
+- `examples/demo_common/host.py` — общий хост демо; разрешённые хосты и origin-ы задаются переменными `DEMO_ALLOWED_HOSTS` / `DEMO_ALLOWED_ORIGINS`.
 
 ## 2. Локально
 
@@ -46,7 +46,7 @@ cp .env.example .env            # заполнить: см. §3
 | `COMPLECTA_ACCESS_KEY` | alxndra-api | **гостевой** ключ `alxndra-demo` из `DOCS_KEYS` основного проекта — MCP отдаёт всё, кроме цен |
 | `COMPLECTA_APP_URL` | alxndra-api | адрес приложения для ссылок в студию |
 | `DATABASE_URL` | alxndra-api | Neon, сессии агента |
-| `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_COMPLECTA_APP_URL`, `NEXT_PUBLIC_HOST_ORIGINS` | сборка витрины | адрес API, приложения, origin-ы родителя для embed |
+| `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_COMPLECTA_APP_URL`, `NEXT_PUBLIC_HOST_ORIGINS` | сборка витрины | адрес API, приложения, origin-ы родителя для embed (по умолчанию прод-адреса приложения и localhost:5180/5177; для локального dev-сервера приложения на :5174 добавьте его сюда) |
 
 Хозяйский ключ основного приложения сюда не попадает никогда: демо публичное, а цены — не публичные данные.
 Значения берутся через `npx vercel env pull` после добавления в проект, не через почту и мессенджеры.
