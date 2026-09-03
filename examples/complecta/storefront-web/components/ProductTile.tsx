@@ -5,7 +5,10 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { hasOptions, optionSummary, optionValuesLabel, priceLabel, useStoreFrame } from "web-shared";
+import { hasOptions, optionSummary, optionValuesLabel, priceLabel as sharedPriceLabel, useStoreFrame } from "web-shared";
+
+/** Цена 0 в этой витрине означает «по запросу у дилера» — числа не печатаем. */
+const priceLabel = (product: Product) => (product.price === 0 ? "Price on request" : sharedPriceLabel(product));
 import type { Product } from "@/lib/types";
 import { flyToCart } from "@/lib/flight";
 import { attributeChips, productGlyph, productTileClass } from "@/lib/format";

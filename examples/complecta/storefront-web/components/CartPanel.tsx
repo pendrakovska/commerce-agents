@@ -11,27 +11,11 @@ import { DeliveryPromise, ProductImage, ProductTitle } from "./ProductTile";
 
 /** The policy says "over" the threshold, so a cart at exactly the threshold is not free. */
 function FreeShippingMeter({ subtotal }: { subtotal: number }) {
-  const threshold = STORE_POLICY.freeShippingThreshold;
-  const free = subtotal > threshold;
-  const remaining = threshold - subtotal;
-  const pct = Math.min((subtotal / threshold) * 100, 100);
+  // Мебель под заказ: никакой «бесплатной доставки от €49». Вместо счётчика — честная строка.
+  void subtotal;
   return (
-    <div data-free-shipping-meter className="mb-3">
-      <div className={`text-[13px] ${free ? "font-semibold text-(--ok)" : "text-(--ink-2)"}`}>
-        {free ? (
-          <>Free shipping on this order ✓</>
-        ) : remaining > 0 ? (
-          <>
-            <span className="font-bold text-(--ink)">{formatMoney(remaining)}</span> away from free shipping
-          </>
-        ) : (
-          <>Anything more ships free</>
-        )}
-      </div>
-      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-(--well)">
-        <div className={`h-full rounded-full transition-[width] duration-500 ease-out ${free ? "bg-(--ok)" : "bg-(--accent)"}`} style={{ width: `${pct}%` }} />
-      </div>
-      {!free ? <div className="mt-1 text-[11.5px] text-(--ink-soft)">Standard shipping is free on orders over {formatMoney(threshold)}.</div> : null}
+    <div className="mt-1 text-[11.5px] text-(--ink-soft)">
+      Prices, VAT and delivery are confirmed in the dealer’s quote.
     </div>
   );
 }

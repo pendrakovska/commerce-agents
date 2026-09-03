@@ -111,16 +111,22 @@ class ComplectaBackend(StorefrontBackend):
             return self._app_url.rstrip("/") + url
         return url
 
+    ON_REQUEST = "on request from an authorised dealer"
+
     def _family(self, f: dict[str, Any]) -> ProductDetails | None:
-        """Family record. Unpriced families are not offered: Product.price is a fact, not a
-        placeholder, and the brand sent no price list (see search_policies)."""
-        if f.get("price") is None:
-            return None
+        """Family record. Цена может отсутствовать по двум причинам: бренд не прислал прайс,
+        или ключ демо не имеет права видеть цены (реш. Olexandra 2026-09-03: прайсы в сеть не
+        утекают). В обоих случаях предмет ОСТАЁТСЯ в витрине: price = 0 с пометкой «по
+        запросу у дилера» — контракт требует число, а ноль с пометкой честнее пропажи."""
+        priced = f.get("price") is not None
+        attrs = self._attributes(f)
+        if not priced:
+            attrs["price"] = f.get("price_note") or self.ON_REQUEST
         rec = ProductDetails(
             product_id=f["product_id"], title=f["title"], brand=f.get("brand"),
-            price=float(f["price"]), currency="EUR", image_url=self._image(f.get("image")),
-            category=f.get("category"), labels=["3D model"] if f.get("has_3d") else [],
-            attributes=self._attributes(f), in_stock=True,
+            price=float(f["price"]) if priced else 0.0, currency="EUR", image_url=self._image(f.get("image")),
+            category=f.get("category"), labels=(["3D model"] if f.get("has_3d") else []) + ([] if priced else ["price on request"]),
+            attributes=attrs, in_stock=True,
             short_description=f"{f.get('brand')} · {f.get('category')}",
             options={k: [str(x) for x in v] for k, v in (f.get("options") or {}).items()},
             specs={k: v for k, v in self._attributes(f).items() if k != "availability"},
@@ -129,11 +135,12 @@ class ComplectaBackend(StorefrontBackend):
         return rec
 
     def _variant(self, family: ProductDetails, v: dict[str, Any]) -> ProductDetails | None:
-        if v.get("price") is None:
-            return None  # this size × finish is not priced ("--" in the price list)
+        priced = v.get("price") is not None
+        if not priced and family.price > 0:
+            return None  # у ценового каталога этот размер × отделка не выпускается («--»)
         rec = ProductDetails(
             product_id=v["product_id"], title=family.title, brand=family.brand,
-            price=float(v["price"]), currency="EUR", image_url=family.image_url,
+            price=float(v["price"]) if priced else 0.0, currency="EUR", image_url=family.image_url,
             category=family.category, labels=list(family.labels),
             attributes=self._attributes({**v, "has_3d": v.get("has_3d")}),
             in_stock=True, option_values={k: str(x) for k, x in (v.get("option_values") or {}).items()},
@@ -163,7 +170,7 @@ class ComplectaBackend(StorefrontBackend):
         for f in listed:
             self.products.setdefault(f.product_id, f)
         if filters and filters.min_price is not None:
-            listed = [f for f in listed if f.price >= filters.min_price]
+            listed = [f for f in listed if f.price == 0 or f.price >= filters.min_price]
         if filters and filters.sort == "price_asc":
             listed.sort(key=lambda p: p.price)
         elif filters and filters.sort == "price_desc":

@@ -53,7 +53,7 @@ export default function CheckoutSummary({ payload }: { payload: CheckoutPayload 
                   <span className="line-clamp-1 text-(--ink)" title={item.title}>
                     {item.title} × {item.quantity}
                   </span>
-                  <span className="shrink-0 text-(--ink)">{formatMoney(item.line_total)}</span>
+                  <span className="shrink-0 text-(--ink)">{item.line_total === 0 || (item.line_total) === 0 ? "on request" : formatMoney(item.line_total)}</span>
                 </div>
                 <DeliveryPromise product={product} />
               </div>
@@ -67,15 +67,23 @@ export default function CheckoutSummary({ payload }: { payload: CheckoutPayload 
         {/* Мебель под заказ: доставка, скидка дилера и срок — в его КП, не в витрине.
             Никаких «бесплатная доставка от €49» — это правда про розницу, не про нас. */}
         <div className="flex justify-between gap-2 text-(--ink)">
+          <span>Prices</span>
+          <span className="text-(--ink-soft)">{cart.subtotal > 0 ? "brand list prices, before VAT" : "on request from the dealer"}</span>
+        </div>
+        <div className="flex justify-between gap-2 text-(--ink)">
+          <span>VAT</span>
+          <span className="text-(--ink-soft)">added by the dealer at the rate of the delivery country</span>
+        </div>
+        <div className="flex justify-between gap-2 text-(--ink)">
           <span>Delivery and lead time</span>
           <span className="text-(--ink-soft)">quoted by the dealer</span>
         </div>
         <div className="flex justify-between border-t border-(--line) pt-1.5 text-base font-bold text-(--ink)">
-          <span>List price total</span>
-          <span>{formatMoney(cart.subtotal, cart.currency)}</span>
+          <span>{cart.subtotal > 0 ? "List price total" : "Total"}</span>
+          <span>{cart.subtotal > 0 ? formatMoney(cart.subtotal, cart.currency) : "on request"}</span>
         </div>
         <p className="text-[11px] leading-snug text-(--ink-soft)">
-          Brand list prices before VAT; the dealer’s quote confirms discount, delivery and lead time.
+          The dealer’s quote confirms prices, discount, VAT, delivery and lead time for every piece in this set.
         </p>
       </div>
       <p className="mt-2 text-[11px] text-(--ink-soft)">{STORE_POLICY.returnsLine}</p>
