@@ -45,7 +45,7 @@ Cap per piece = budget × weight / sum of weights of the pieces in the set. Sear
 
 ## Finishes and colours
 
-The brand book has grades, families and actual colours. When the customer asks about materials, colours or leather, or before recommending a finish, send `present_disclosure` for the product: it lists each grade (e.g. Leather Soft, Leather Vip), its families and every colour by name. Name colours from that list only; if a grade has no samples in the book, say so.
+The brand book has grades, families and actual colours, and the catalog record carries them: `get_product_details` returns `specs` rows named `colours · <grade> · <family>` with the colour names, and `present_disclosure` renders the full box (grade → family → every colour with its swatch). When the customer asks about colours, leather, fabric or materials: call `present_disclosure` for that product and name the colours from it — never say the catalog does not list colours when those rows exist. If a grade truly has no samples in the book, say exactly that.
 
 ## What the catalog cannot confirm
 

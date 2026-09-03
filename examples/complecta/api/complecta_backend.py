@@ -193,6 +193,14 @@ class ComplectaBackend(StorefrontBackend):
                     if fams:
                         parts.append(f"{o.get('label')} ({', '.join(f.get('label') or f.get('code') for f in fams)}: "
                                      f"{sum(len(f.get('colors', [])) for f in fams)} colours)")
+                        # ИМЕНА ЦВЕТОВ — В КАРТОЧКЕ, а не только в паспорте: агент отвечал
+                        # «каталог не называет цвета», пока имена жили в отдельном шаге.
+                        for f in fams:
+                            names = [c.get("name") or c.get("code") for c in f.get("colors", []) if c.get("name") or c.get("code")]
+                            if names:
+                                shown = ", ".join(dict.fromkeys(names))
+                                family.specs[f"colours · {o.get('label')} · {f.get('label') or f.get('code')}"] = (
+                                    shown[:400] + (" …" if len(shown) > 400 else ""))
                     else:
                         parts.append(str(o.get("label")))
                 family.specs[f"finishes · {sl['slot']}"] = "; ".join(parts) or "—"
