@@ -19,6 +19,16 @@ from .agent_config import build_shopping_config
 from .complecta_backend import ComplectaBackend
 from .finishes_view import build_finishes_extension
 
+# СЕССИИ — В NEON, КОГДА ЕСТЬ БАЗА. Эталонный хост держит сессии в памяти процесса; на
+# serverless-хостинге (Vercel) каждый вызов может прийти в другой процесс, и диалог
+# терялся бы. Хост создаёт SessionStore по имени в своём модуле — подменяем класс до
+# сборки хоста; локально без DATABASE_URL всё остаётся в памяти.
+import os as _os
+if _os.environ.get("DATABASE_URL"):
+    import demo_common.storefront as _storefront
+    from .sessions_neon import NeonSessionStore
+    _storefront.SessionStore = NeonSessionStore
+
 EXAMPLE_ROOT = Path(__file__).resolve().parents[1]
 load_demo_env(EXAMPLE_ROOT)
 

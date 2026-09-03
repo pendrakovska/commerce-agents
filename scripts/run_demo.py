@@ -136,7 +136,7 @@ def ensure_python_deps(install: bool) -> None:
     missing = [m for m in PYTHON_MODULES if importlib.util.find_spec(m) is None]
     if not missing:
         return
-    requirements = REPO_ROOT / "requirements.txt"
+    requirements = REPO_ROOT / "requirements-local.txt"
     if not install:
         sys.exit(
             f"Missing Python packages ({', '.join(missing)}). Run: pip install -r {requirements}"

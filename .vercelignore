@@ -1,0 +1,13 @@
+.venv
+examples/node_modules
+examples/*/storefront-web
+examples/*/merchant-web
+examples/web-shared
+tests
+merchant-agent/runtime-agent-sdk
+shopping-agent/runtime-agent-sdk
+shopping-agent/managed-agents
+merchant-agent/managed-agents
+docs
+plugins
+**/__pycache__

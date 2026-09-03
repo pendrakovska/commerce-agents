@@ -17,7 +17,7 @@ if ! python -c 'import sys; sys.exit(0 if sys.prefix != sys.base_prefix else 1)'
 fi
 
 case "${1:-all}" in
-  all) pip install -r requirements.txt ;;
+  all) pip install -r requirements-local.txt ;;
   dev) pip install -r requirements-dev.txt ;;
   *) echo "usage: $0 [all|dev]" >&2; exit 2 ;;
 esac

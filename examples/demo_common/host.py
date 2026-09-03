@@ -121,9 +121,12 @@ def build_app(title: str, on_startup: Sequence[Callable[[], Awaitable[None]]] = 
         TrustedHostMiddleware,
         allowed_hosts=["localhost", "127.0.0.1", *(host for host in extra_hosts if host)],
     )
+    # DEMO_ALLOWED_ORIGINS — витрина на другом домене (например Vercel): список через запятую.
+    extra_origins = [o.strip() for o in os.environ.get("DEMO_ALLOWED_ORIGINS", "").split(",") if o.strip()]
     app.add_middleware(
         CORSMiddleware,
         allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
+        allow_origins=extra_origins,
         allow_methods=["*"],
         allow_headers=["*"],
     )
