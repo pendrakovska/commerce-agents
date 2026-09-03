@@ -15,6 +15,7 @@ from .complecta_backend import ComplectaBackend
 class FinishesPayload(BaseModel):
     product_id: str
     slot: str | None = Field(default=None, description="upholstery, wood, metal, stone … (omit for all)")
+    kind: str | None = Field(default=None, description="leather, fabric, wood, metal, stone — only this kind")
     note: str | None = Field(default=None, max_length=200, description="one line on what the customer asked for")
 
 
@@ -23,6 +24,7 @@ _INPUT_SCHEMA: dict[str, Any] = {
     "properties": {
         "product_id": {"type": "string"},
         "slot": {"type": "string", "description": "upholstery, wood, metal, stone … (omit for all)"},
+        "kind": {"type": "string", "description": "leather, fabric, wood, metal, stone — only finishes of this kind"},
         "note": {"type": "string", "maxLength": 200, "description": "one line on what the customer asked for"},
     },
     "required": ["product_id"],
@@ -36,6 +38,8 @@ def build_finishes_extension(backend: ComplectaBackend) -> PresentationExtension
         args: dict[str, Any] = {"product_id": payload.product_id.split("#")[0]}
         if payload.slot:
             args["slot"] = payload.slot
+        if payload.kind:
+            args["kind"] = payload.kind
         out = await backend._call("get_finishes", args)
         if out.get("error"):
             raise ValueError(f"{out['error']} — use a product_id from this session's search results.")
@@ -68,7 +72,8 @@ def build_finishes_extension(backend: ComplectaBackend) -> PresentationExtension
             "families and each colour's swatch image, and the wood, metal or stone options with "
             "their samples. Use it whenever the customer asks about colours, leather, fabric, "
             "materials or finishes, or before recommending a finish; pass a product_id from this "
-            "session's results. Everything shown comes from the brand's materials book."
+            "session's results and kind=leather (or fabric, wood, metal, stone) when the customer asked for one material only. "
+            "Everything shown comes from the brand's materials book."
         ),
         input_schema=_INPUT_SCHEMA,
         payload_model=FinishesPayload,
