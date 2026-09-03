@@ -44,6 +44,26 @@ class ComplectaBackend(StorefrontBackend):
         self._carts = SessionCarts()
         self._seen: dict[str, ProductDetails] = {}  # product_id → details (families and variants)
         self._rpc_id = 0
+        # Хост показывает витрину из ``products`` (главная страница, /api/health): у мока это
+        # весь каталог из фикстур, у нас — прогретая выборка семей по основным категориям.
+        # Заполняется при старте синхронно (MCP отвечает за ~200 мс на категорию).
+        self.products: dict[str, ProductDetails] = {}
+        self._warm()
+
+    WARM_CATEGORIES = ("sofa", "armchair", "coffee-table", "dining-table", "chair", "bed", "sideboard", "pendant", "floor-lamp")
+
+    def _warm(self) -> None:
+        if not self._key:
+            return
+        for cat in self.WARM_CATEGORIES:
+            try:
+                out = self._call_sync("search_products", {"category": cat, "limit": 6})
+            except Exception:  # витрина без прогрева — не повод не подняться
+                continue
+            for f in out.get("products", []):
+                rec = self._family(f)
+                if rec is not None:
+                    self.products[rec.product_id] = rec
 
     # ------------------------------------------------------------------ MCP
     async def _call(self, tool: str, arguments: dict[str, Any]) -> dict[str, Any]:
@@ -127,6 +147,8 @@ class ComplectaBackend(StorefrontBackend):
         out = await self._call("search_products", args)
         families = [self._family(f) for f in out.get("products", [])]
         listed = [f for f in families if f is not None]
+        for f in listed:
+            self.products.setdefault(f.product_id, f)
         if filters and filters.min_price is not None:
             listed = [f for f in listed if f.price >= filters.min_price]
         if filters and filters.sort == "price_asc":
