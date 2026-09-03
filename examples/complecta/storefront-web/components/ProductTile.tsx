@@ -38,7 +38,8 @@ function ReturnsPromise({ className = "" }: { className?: string }) {
   );
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_COMPLECTA_APP_URL ?? "https://complecta-commerce.vercel.app";
+const RAW_APP = process.env.NEXT_PUBLIC_COMPLECTA_APP_URL ?? "";
+const APP_URL = RAW_APP && !RAW_APP.includes("[") ? RAW_APP : "https://complecta-commerce.vercel.app";
 /** Полная карточка товара — в студии Complecta (реш. Olexandra 2026-09-03). Вариант ведёт на свою семью. */
 export function studioHref(product: Pick<Product, "product_id" | "variant_of">): string {
   const family = (product.variant_of ?? product.product_id).split("#")[0];

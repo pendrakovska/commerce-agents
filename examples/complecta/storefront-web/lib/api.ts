@@ -4,7 +4,13 @@
 import { AgentApi } from "web-shared";
 import type { CartPayload, Product, ProductDetails } from "./types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// АДРЕС API — УСТОЙЧИВЫЙ К СБОРКЕ. `vercel pull` отдаёт NEXT_PUBLIC_* как "[SENSITIVE]", и
+// такой «адрес» уже уезжал в бандл (запросы шли на /[SENSITIVE]/api/…, витрина молчала).
+// Плейсхолдер и пустоту не считаем адресом; на *.vercel.app — прод-API, иначе локальный демо-API.
+const RAW_API = process.env.NEXT_PUBLIC_API_URL ?? "";
+const API_URL = RAW_API && !RAW_API.includes("[") ? RAW_API
+  : (typeof window !== "undefined" && window.location.hostname.endsWith("vercel.app")) ? "https://alxndra-api.vercel.app"
+  : "http://localhost:8004";
 
 export const api = new AgentApi(API_URL, "/api");
 

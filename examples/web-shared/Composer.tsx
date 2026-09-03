@@ -18,8 +18,11 @@ function speechRecognition(): (new () => Recognition) | null {
 }
 function MicButton({ onText, disabled, size }: { onText: (t: string) => void; disabled: boolean; size: string }) {
   const [listening, setListening] = useState(false);
+  const [SR, setSR] = useState<(new () => Recognition) | null>(null);
   const recRef = useRef<Recognition | null>(null);
-  const SR = speechRecognition();
+  // на сервере API нет, на клиенте есть — решать только после монтирования, иначе
+  // разметка не сходится (React #418) и обработчики страницы не подключаются
+  useEffect(() => { setSR(speechRecognition()); }, []);
   if (!SR) return null;
   const toggle = () => {
     if (listening) { recRef.current?.stop(); setListening(false); return; }

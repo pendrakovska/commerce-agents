@@ -52,7 +52,10 @@ class ComplectaBackend(StorefrontBackend):
         # весь каталог из фикстур, у нас — прогретая выборка семей по основным категориям.
         # Заполняется при старте синхронно (MCP отвечает за ~200 мс на категорию).
         self.products: dict[str, ProductDetails] = {}
-        self._warm()
+        # прогрев в фоне: холодный старт serverless-функции не должен ждать девять
+        # обращений к MCP — сессия и чат отвечают сразу, витрина главной догружается
+        import threading
+        threading.Thread(target=self._warm, daemon=True).start()
 
     WARM_CATEGORIES = ("sofa", "armchair", "coffee-table", "dining-table", "chair", "bed", "sideboard", "pendant", "floor-lamp")
 
