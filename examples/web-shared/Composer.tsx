@@ -4,6 +4,46 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
+// ГОЛОСОВОЙ ВВОД (реш. Olexandra 2026-09-03: «прикрутить голосовой ввод в строку промпта»).
+// Web Speech API браузера — без сервера и без ключей, как у комнатного копайлота Complecta.
+// Язык — язык браузера (uk/ru/en/it…); распознанное ложится В ПОЛЕ, а не отправляется само:
+// человек видит текст и правит перед отправкой. В браузерах без API кнопки нет (Firefox).
+type Recognition = { lang: string; interimResults: boolean; maxAlternatives: number; start(): void; stop(): void;
+  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onend: (() => void) | null; onerror: (() => void) | null };
+function speechRecognition(): (new () => Recognition) | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as { SpeechRecognition?: new () => Recognition; webkitSpeechRecognition?: new () => Recognition };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+function MicButton({ onText, disabled, size }: { onText: (t: string) => void; disabled: boolean; size: string }) {
+  const [listening, setListening] = useState(false);
+  const recRef = useRef<Recognition | null>(null);
+  const SR = speechRecognition();
+  if (!SR) return null;
+  const toggle = () => {
+    if (listening) { recRef.current?.stop(); setListening(false); return; }
+    const r = new SR();
+    r.lang = typeof navigator !== "undefined" && navigator.language ? navigator.language : "en-US";
+    r.interimResults = false; r.maxAlternatives = 1;
+    r.onresult = (e) => { const t = e.results?.[e.results.length - 1]?.[0]?.transcript?.trim(); if (t) onText(t); };
+    r.onend = () => setListening(false);
+    r.onerror = () => setListening(false);
+    recRef.current = r; setListening(true);
+    try { r.start(); } catch { setListening(false); }
+  };
+  return (
+    <button type="button" onClick={toggle} disabled={disabled} aria-pressed={listening}
+      aria-label={listening ? "Stop listening" : "Speak your request"}
+      title={listening ? "Listening… click to stop" : "Speak your request (browser speech recognition)"}
+      className={`grid shrink-0 place-items-center rounded-[11px] border transition disabled:opacity-35 ${size} ${
+        listening ? "border-(--accent) bg-(--accent-soft) text-(--accent-ink)" : "border-(--line-strong) bg-(--card) text-(--ink-soft) hover:text-(--ink)"}`}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0" /><path d="M12 18v3" /><path d="M8 21h8" />
+      </svg>
+    </button>
+  );
+}
 import { Icon } from "./icons";
 
 export interface Prefill {
@@ -86,6 +126,8 @@ export function Composer({
         placeholder={busy ? "Working…" : placeholder}
         className={`max-h-40 min-w-0 flex-1 resize-none text-(--ink) outline-none transition placeholder:text-(--ink-soft)/70 ${VARIANTS[variant].input}`}
       />
+      <MicButton disabled={busy || !ready} size={VARIANTS[variant].button}
+        onText={(t) => { setDraft((d) => (d.trim() ? `${d.trim()} ${t}` : t)); boxRef.current?.focus(); }} />
       <button
         type="submit"
         disabled={busy || !ready || !draft.trim()}
