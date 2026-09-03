@@ -2,23 +2,21 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { Metadata } from "next";
-import { Instrument_Sans } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
-const instrumentSans = Instrument_Sans({
-  subsets: ["latin"],
-  variable: "--font-body",
-  display: "swap",
-});
+// Шрифты бренда Complecta AI: Playfair Display — заголовки и wordmark, Inter — текст и UI.
+const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-body", display: "swap" });
+const playfair = Playfair_Display({ subsets: ["latin", "cyrillic"], variable: "--font-display", display: "swap", style: ["normal", "italic"] });
 
 export const metadata: Metadata = {
-  title: "Complecta",
-  description: "Shop the Complecta furniture catalog with the ALXNDRA.",
+  title: "Complecta AI",
+  description: "Real furniture from Italian brands, chosen with ALXNDRA — the Complecta AI copilot.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={instrumentSans.variable}>
+    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body>{children}</body>
     </html>
   );

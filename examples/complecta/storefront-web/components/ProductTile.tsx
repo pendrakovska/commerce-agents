@@ -34,10 +34,55 @@ function ReturnsPromise({ className = "" }: { className?: string }) {
   );
 }
 
+const APP_URL = process.env.NEXT_PUBLIC_COMPLECTA_APP_URL ?? "https://complecta-commerce.vercel.app";
+/** Полная карточка товара — в студии Complecta (реш. Olexandra 2026-09-03). Вариант ведёт на свою семью. */
+export function studioHref(product: Pick<Product, "product_id" | "variant_of">): string {
+  const family = (product.variant_of ?? product.product_id).split("#")[0];
+  return `${APP_URL}/studio.html#${encodeURIComponent(family)}`;
+}
+
+/**
+ * Фото товара ЦЕЛИКОМ (object-contain на белом — пакшоты брендов белые, обрезка
+ * превращала предмет во фрагмент), при наведении — поп-ап с полной картинкой,
+ * по клику — полная карточка в студии Complecta.
+ */
 export function ProductImage({ product, className = "" }: { product: Product; className?: string }) {
+  const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null);
   if (product.image_url) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={product.image_url} alt={product.title} className={`object-cover ${className}`} />;
+    const src = product.image_url;
+    return (
+      <a
+        href={studioHref(product)}
+        target="_blank"
+        rel="noreferrer"
+        title={`${product.title} — open the full product card in Complecta studio`}
+        className={`relative block bg-white ${className}`}
+        onMouseEnter={(e) => setZoom({ x: e.clientX, y: e.clientY })}
+        onMouseMove={(e) => setZoom({ x: e.clientX, y: e.clientY })}
+        onMouseLeave={() => setZoom(null)}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt={product.title} className="h-full w-full object-contain bg-white" />
+        {zoom && (
+          <span
+            aria-hidden
+            className="pointer-events-none fixed z-[80] rounded-xl border border-(--line) bg-white p-2 shadow-[0_18px_48px_-12px_rgba(34,31,28,.35)]"
+            style={{
+              left: Math.min(zoom.x + 18, (typeof window !== "undefined" ? window.innerWidth : 1200) - 380),
+              top: Math.max(12, Math.min(zoom.y - 160, (typeof window !== "undefined" ? window.innerHeight : 800) - 330)),
+              width: 360,
+              height: 300,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={src} alt="" className="h-full w-full object-contain" />
+            <span className="absolute bottom-2 left-3 text-[11px] text-(--ink-soft)">
+              click — full card in Complecta studio
+            </span>
+          </span>
+        )}
+      </a>
+    );
   }
   return (
     <div

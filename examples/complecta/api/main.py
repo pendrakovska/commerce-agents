@@ -24,7 +24,8 @@ load_demo_env(EXAMPLE_ROOT)
 backend = ComplectaBackend()
 agent = ShoppingAgent(
     backend=backend,
-    skills_dir=REPO_ROOT / "shopping-agent" / "skills",
+    # свои скиллы: эталонные пять + interior-design (правила комплекта, доли бюджета, нормы)
+    skills_dir=EXAMPLE_ROOT / "skills",
     config=build_shopping_config(),
     memory_store=InMemoryMemoryStore(),
 )

@@ -15,6 +15,7 @@ from shopping_agent import (
     Cart,
     CheckoutHandoff,
     Disclosure,
+    DisclosureRow,
     FulfillmentOption,
     Order,
     Policy,
@@ -183,6 +184,20 @@ class ComplectaBackend(StorefrontBackend):
         family.variants = [Product.model_validate(v.model_dump(exclude={"variants", "specs", "long_description", "review_highlights"}))
                            for v in variants]
         note = out.get("finish_note")
+        try:
+            fin = await self._call("get_finishes", {"product_id": family_id})
+            for sl in fin.get("slots", []):
+                parts = []
+                for o in sl.get("options", []):
+                    fams = o.get("families")
+                    if fams:
+                        parts.append(f"{o.get('label')} ({', '.join(f.get('label') or f.get('code') for f in fams)}: "
+                                     f"{sum(len(f.get('colors', [])) for f in fams)} colours)")
+                    else:
+                        parts.append(str(o.get("label")))
+                family.specs[f"finishes · {sl['slot']}"] = "; ".join(parts) or "—"
+        except Exception:
+            family.specs["finishes"] = "see present_disclosure"
         family.long_description = (
             f"{family.brand} {family.title}: list price from the brand price list, EUR. "
             + (f"{len(variants)} priced size × finish variants. " if variants else "")
@@ -261,8 +276,39 @@ class ComplectaBackend(StorefrontBackend):
         return hits or policies
 
     async def get_disclosure(self, session: ShoppingSessionContext, product_id: str) -> Disclosure | None:
-        del session, product_id
-        return None
+        """Паспорт отделок: сорта, семейства и КОНКРЕТНЫЕ ЦВЕТА из книги материалов
+        бренда (реш. Olexandra 2026-09-03: «всё об отделках»). Ничего не выдумано —
+        чего нет в книге, того нет в строках, и это сказано."""
+        del session
+        family_id = product_id.split("#")[0]
+        out = await self._call("get_finishes", {"product_id": family_id})
+        if out.get("error"):
+            return None
+        rows = []
+        for sl in out.get("slots", []):
+            for o in sl.get("options", []):
+                fams = o.get("families")
+                if fams is None:
+                    rows.append(DisclosureRow(label=f"{sl['slot']} · {o.get('label')}",
+                                              value=o.get("hex") or "sample on request",
+                                              note="swatch: " + o["swatch"] if o.get("swatch") else None))
+                    continue
+                if not fams:
+                    rows.append(DisclosureRow(label=f"{sl['slot']} · {o.get('label')}", value="grade priced, no colour samples in the brand book",
+                                              note=o.get("note")))
+                    continue
+                for f in fams:
+                    names = [c.get("name") or c.get("code") for c in f.get("colors", []) if c.get("name") or c.get("code")]
+                    rows.append(DisclosureRow(
+                        label=f"{sl['slot']} · {o.get('label')} · {f.get('label')}",
+                        value=", ".join(names[:24]) + (f" … (+{len(names) - 24})" if len(names) > 24 else "") or "colours on request",
+                        note=f"{len(names)} colours" + (f" · {f['material']}" if f.get("material") else ""),
+                    ))
+        if not rows:
+            rows.append(DisclosureRow(label="finishes", value=out.get("note") or "no finish choice in the price list"))
+        return Disclosure(title=f"{out.get('brand')} {out.get('title')} — finishes and colours", product_id=family_id,
+                          rows=rows, sources=["brand materials book (Complecta catalog)"],
+                          footnotes=["Default finish: " + str(out.get("default"))] if out.get("default") else [])
 
     async def get_fulfillment_options(self, session: ShoppingSessionContext, product_ids: list[str]) -> list[FulfillmentOption]:
         del session, product_ids
