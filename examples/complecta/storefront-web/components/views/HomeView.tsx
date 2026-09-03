@@ -24,8 +24,8 @@ import type { Product } from "@/lib/types";
 import ProductTile from "../ProductTile";
 
 const STARTERS: Starter[] = [
-  { icon: "search", prompt: "Furnish a 25 m² living room in contemporary Italian style, budget €12,000" },
-  { icon: "home", prompt: "Compare two dining tables for six, under €6,000" },
+  { icon: "search", prompt: "Furnish a 25 m² living room in contemporary Italian style — propose a full set" },
+  { icon: "home", prompt: "Compare two dining tables for six in walnut or stone" },
   { icon: "tag", prompt: "A sofa around 240 cm in walnut and leather — what do the brands offer?" },
   { icon: "edit", prompt: "Remember: oak floor, no sofa wider than 260 cm, two cats" },
 ];
