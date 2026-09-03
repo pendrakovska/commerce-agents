@@ -18,12 +18,10 @@ export default function CheckoutSummary({ payload }: { payload: CheckoutPayload 
   // Summary lines carry only title, price, and quantity; the catalog supplies delivery
   // dates and thumbnails.
   const catalog = useCatalogIndex(fetchProducts);
-  // The policy says "over" the threshold, so a cart at exactly the threshold is not free.
-  const freeShipping = cart.subtotal > STORE_POLICY.freeShippingThreshold;
   return (
     <section data-checkout-card className="rounded-2xl border-2 border-(--accent) bg-(--card) p-4 shadow-(--shadow-sm)">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-[15px] font-semibold text-(--ink)">Ready to check out</h3>
+        <h3 className="text-[15px] font-semibold text-(--ink)">Ready for a dealer quote</h3>
         <div className="flex items-center gap-1.5">
           <span className="whitespace-nowrap rounded-full border border-(--line) bg-(--well)/60 px-2.5 py-0.5 text-[11px] font-semibold text-(--ink-soft)">
             Not charged
@@ -66,36 +64,18 @@ export default function CheckoutSummary({ payload }: { payload: CheckoutPayload 
           <span>Subtotal</span>
           <span>{formatMoney(cart.subtotal, cart.currency)}</span>
         </div>
+        {/* Мебель под заказ: доставка, скидка дилера и срок — в его КП, не в витрине.
+            Никаких «бесплатная доставка от €49» — это правда про розницу, не про нас. */}
         <div className="flex justify-between gap-2 text-(--ink)">
-          <span>
-            Shipping{" "}
-            <span className="text-[13px] text-(--ink-soft)">
-              standard · {STORE_POLICY.standardShippingEta}
-            </span>
-          </span>
-          <span className={freeShipping ? "font-medium text-(--ok)" : "text-(--ink)"}>
-            {freeShipping ? "Free" : "Calculated at checkout"}
-          </span>
-        </div>
-        {!freeShipping && STORE_POLICY.freeShippingThreshold - cart.subtotal > 0 ? (
-          <div className="flex justify-between text-[13px] text-(--ink-soft)">
-            <span>
-              Add {formatMoney(STORE_POLICY.freeShippingThreshold - cart.subtotal)} more to
-              unlock free shipping
-            </span>
-          </div>
-        ) : null}
-        <div className="flex justify-between text-(--ink)">
-          <span>Tax</span>
-          <span>Calculated at checkout</span>
+          <span>Delivery and lead time</span>
+          <span className="text-(--ink-soft)">quoted by the dealer</span>
         </div>
         <div className="flex justify-between border-t border-(--line) pt-1.5 text-base font-bold text-(--ink)">
-          <span>Estimated total</span>
+          <span>List price total</span>
           <span>{formatMoney(cart.subtotal, cart.currency)}</span>
         </div>
         <p className="text-[11px] leading-snug text-(--ink-soft)">
-          {freeShipping ? "Before tax" : "Before shipping and tax"}; the final total appears at
-          checkout.
+          Brand list prices before VAT; the dealer’s quote confirms discount, delivery and lead time.
         </p>
       </div>
       <p className="mt-2 text-[11px] text-(--ink-soft)">{STORE_POLICY.returnsLine}</p>
