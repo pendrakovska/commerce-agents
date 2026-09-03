@@ -6,6 +6,7 @@
 import { type GenerativeBlockProps, UnknownBlock } from "web-shared";
 import type {
   CheckoutPayload,
+  FinishesPayload,
   ComparisonPayload,
   GuidePayload,
   OrderStatusPayload,
@@ -15,6 +16,7 @@ import type {
 } from "@/lib/types";
 import CheckoutSummary from "./CheckoutSummary";
 import ComparisonGrid from "./ComparisonGrid";
+import FinishSwatches from "./FinishSwatches";
 import GuideCard from "./GuideCard";
 import OrderStatusCard from "./OrderStatusCard";
 import PlanChecklist from "./PlanChecklist";
@@ -35,6 +37,9 @@ export default function GenerativeBlock({
       return <ComparisonGrid payload={block.payload as ComparisonPayload} partial={partial} />;
     case "plan":
       return <PlanChecklist payload={block.payload as PlanPayload} onAdd={onAdd} partial={partial} />;
+    case "finishes":
+      if (partial) return null;
+      return <FinishSwatches payload={block.payload as FinishesPayload} />;
     case "guide":
       return <GuideCard payload={block.payload as GuidePayload} />;
     case "order_status":

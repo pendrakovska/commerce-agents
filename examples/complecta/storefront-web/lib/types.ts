@@ -40,7 +40,13 @@ export interface ReviewAspects {
   aspects: { name: string; positive_pct: number; mentions: number }[];
 }
 
+export interface FinishColor { code?: string | null; name?: string | null; hex?: string | null; swatch?: string | null }
+export interface FinishFamily { code: string; label: string; material?: string | null; colors: FinishColor[] }
+export interface FinishOption { key: string; label: string; kind?: string | null; hex?: string | null; swatch?: string | null; note?: string | null; families?: FinishFamily[] }
+export interface FinishesPayload { product_id: string; title?: string | null; brand?: string | null; default?: string | null; note?: string | null; slots: { slot: string; options: FinishOption[] }[] }
+
 export interface ProductDetails extends Product {
+  finishes?: FinishesPayload | null;
   variants?: Product[];
   long_description?: string | null;
   specs?: Record<string, string>;

@@ -17,6 +17,7 @@ from shopping_agent_runtime import ShoppingAgent
 
 from .agent_config import build_shopping_config
 from .complecta_backend import ComplectaBackend
+from .finishes_view import build_finishes_extension
 
 EXAMPLE_ROOT = Path(__file__).resolve().parents[1]
 load_demo_env(EXAMPLE_ROOT)
@@ -28,11 +29,20 @@ agent = ShoppingAgent(
     skills_dir=EXAMPLE_ROOT / "skills",
     config=build_shopping_config(),
     memory_store=InMemoryMemoryStore(),
+    # свотчи отделок в чате: present_finishes (сорт → семейство → цвет с образцом)
+    extra_presentation_tools=[build_finishes_extension(backend)],
 )
 
 
 def product_detail(product: ProductDetails) -> dict:
-    return product.model_dump()
+    """Карточка в витрине несёт и образцы отделок — свотчи под описанием."""
+    data = product.model_dump()
+    try:
+        fin = backend._call_sync("get_finishes", {"product_id": product.product_id.split("#")[0]})
+        data["finishes"] = fin if fin.get("slots") else None
+    except Exception:
+        data["finishes"] = None
+    return data
 
 
 host = build_storefront_host(

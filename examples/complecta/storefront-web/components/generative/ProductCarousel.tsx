@@ -8,6 +8,7 @@ import { formatMoney, optionValuesLabel, priceLabel, useStoreFrame } from "web-s
 import { fetchProduct } from "@/lib/api";
 import type { PriceIntelligence, Product, ProductDetails, ProductsPayload, ReviewAspects } from "@/lib/types";
 import ProductTile, { AddButton, DeliveryPromise, OptionLine, ProductImage, Rating } from "../ProductTile";
+import FinishSwatches from "./FinishSwatches";
 
 function PriceIntelligenceRow({ intel }: { intel: PriceIntelligence }) {
   const { series, low, high } = intel;
@@ -203,6 +204,7 @@ function ProductDetail({
               {details.long_description}
             </p>
           ) : null}
+          {details.finishes ? <div className="mt-2"><FinishSwatches payload={details.finishes} compact /></div> : null}
           {details.variants?.length ? <VariantList family={details} variants={details.variants} /> : null}
           {Object.keys(specs).length ? (
             <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
