@@ -27,8 +27,10 @@ from shopping_agent import (
     UserPreferences,
 )
 
-MCP_URL = os.environ.get("COMPLECTA_MCP_URL", "https://complecta-commerce.vercel.app/api/mcp")
-APP_URL = os.environ.get("COMPLECTA_APP_URL", "https://complecta-commerce.vercel.app")
+# Адреса читаются В МОМЕНТ СОЗДАНИЯ бэкенда, а не при импорте: main.py грузит .env
+# вертикали после импорта модуля, и константа на уровне модуля видела бы только дефолт.
+DEFAULT_MCP_URL = "https://complecta-commerce.vercel.app/api/mcp"
+DEFAULT_APP_URL = "https://complecta-commerce.vercel.app"
 AVAILABILITY = "made to order — the brand does not publish stock; lead time is confirmed by the dealer"
 
 
@@ -38,8 +40,9 @@ class ComplectaBackend(StorefrontBackend):
 
     store_name = "Complecta"
 
-    def __init__(self, mcp_url: str = MCP_URL, access_key: str | None = None) -> None:
-        self._url = mcp_url
+    def __init__(self, mcp_url: str | None = None, access_key: str | None = None) -> None:
+        self._url = mcp_url or os.environ.get("COMPLECTA_MCP_URL", DEFAULT_MCP_URL)
+        self._app_url = os.environ.get("COMPLECTA_APP_URL", DEFAULT_APP_URL)
         self._key = access_key or os.environ.get("COMPLECTA_ACCESS_KEY", "")
         self._carts = SessionCarts()
         self._seen: dict[str, ProductDetails] = {}  # product_id → details (families and variants)
@@ -216,7 +219,7 @@ class ComplectaBackend(StorefrontBackend):
         # No card checkout: furniture is sold through dealers on a quote. The cart hands off
         # to the Complecta app, where the set becomes a specification and a dealer quote.
         del session, cart
-        return [CheckoutHandoff(url=APP_URL, label="Request a dealer quote in Complecta")]
+        return [CheckoutHandoff(url=self._app_url, label="Request a dealer quote in Complecta")]
 
     async def get_account_context(self, session: ShoppingSessionContext) -> dict[str, Any] | None:
         del session
