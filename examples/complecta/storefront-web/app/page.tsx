@@ -16,6 +16,19 @@ type View = "assistant" | "orders";
 
 const ASSISTANT = "ALXNDRA";
 
+// ВСТРОЕННЫЙ РЕЖИМ: витрина живёт в шапке большой Complecta AI как iframe (реш. Olexandra
+// 2026-09-03: «отдельно в шапке, корзина — в Подборку»). Корзина и намерение оформить
+// уходят родителю конвертом embed-протокола Complecta ({v, id, dir:"out", type, payload}) —
+// тем же, что у виджета-конфигуратора. Родитель — только доверенный origin.
+const HOST_ORIGINS = (process.env.NEXT_PUBLIC_HOST_ORIGINS ?? "https://complecta-commerce.vercel.app,https://rfp-woad-two.vercel.app,http://localhost:5180,http://localhost:5177")
+  .split(",").map((s) => s.trim()).filter(Boolean);
+function postToHost(type: string, payload: Record<string, unknown>): void {
+  if (typeof window === "undefined" || window.parent === window) return;
+  for (const origin of HOST_ORIGINS) {
+    try { window.parent.postMessage({ v: 1, id: null, dir: "out", type, payload }, origin); } catch { /* чужой origin — молча */ }
+  }
+}
+
 function Wordmark() {
   // Знак Complecta AI (монограмма «C» со срезом-стрелкой) + wordmark в Playfair.
   return (
@@ -39,14 +52,18 @@ export default function StorefrontPage() {
   const handleCartUpdate = useCallback((next: CartPayload) => {
     setCart(next);
     setCheckoutStaged(false);
+    postToHost("event", { kind: "cart", cart: next });
   }, []);
 
   const onEvent = useCallback(
     (event: AgentEvent) => {
       if (event.type === "cart_update") handleCartUpdate(event.data.cart as CartPayload);
-      else if (event.type === "ui" && event.data.component === "checkout") setCheckoutStaged(true);
+      else if (event.type === "ui" && event.data.component === "checkout") {
+        setCheckoutStaged(true);
+        postToHost("order_intent", { cart: cart ?? null });
+      }
     },
-    [handleCartUpdate],
+    [handleCartUpdate, cart],
   );
 
   const chat = useAgentTurn(api, { ...session, unreachable: UNREACHABLE, onEvent });
