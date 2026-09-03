@@ -4,6 +4,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { hasOptions, optionSummary, optionValuesLabel, priceLabel, useStoreFrame } from "web-shared";
 import type { Product } from "@/lib/types";
 import { flyToCart } from "@/lib/flight";
@@ -63,13 +64,16 @@ export function ProductImage({ product, className = "" }: { product: Product; cl
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} alt={product.title} className="h-full w-full object-contain bg-white" />
-        {zoom && (
+        {zoom && typeof document !== "undefined" && createPortal(
+          // ПОРТАЛ В BODY: карусель живёт в transform + overflow, и «fixed» внутри неё
+          // позиционируется относительно карусели и обрезается её рамкой — поп-ап
+          // выходил серым прямоугольником. В body он виден целиком поверх всего.
           <span
             aria-hidden
-            className="pointer-events-none fixed z-[80] rounded-xl border border-(--line) bg-white p-2 shadow-[0_18px_48px_-12px_rgba(34,31,28,.35)]"
+            className="pointer-events-none fixed z-[1000] rounded-xl border border-(--line) bg-white p-2 shadow-[0_18px_48px_-12px_rgba(18,18,18,.35)]"
             style={{
-              left: Math.min(zoom.x + 18, (typeof window !== "undefined" ? window.innerWidth : 1200) - 380),
-              top: Math.max(12, Math.min(zoom.y - 160, (typeof window !== "undefined" ? window.innerHeight : 800) - 330)),
+              left: Math.min(zoom.x + 18, window.innerWidth - 380),
+              top: Math.max(12, Math.min(zoom.y - 160, window.innerHeight - 330)),
               width: 360,
               height: 300,
             }}
@@ -79,7 +83,8 @@ export function ProductImage({ product, className = "" }: { product: Product; cl
             <span className="absolute bottom-2 left-3 text-[11px] text-(--ink-soft)">
               click — full card in Complecta studio
             </span>
-          </span>
+          </span>,
+          document.body,
         )}
       </a>
     );
